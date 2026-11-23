@@ -1,0 +1,13 @@
+# Déploiement Netlify : build automatique à chaque envoi sur GitHub (ou glisser-déposer du dossier dist/).
+[build]
+  command = "npm ci && npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Le service worker doit toujours être revérifié pour que les mises à jour arrivent.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
