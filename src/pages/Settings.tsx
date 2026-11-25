@@ -107,6 +107,41 @@ function AiKeyField({ current }: { current?: string }) {
   );
 }
 
+/** Version installée et recherche manuelle d'une mise à jour. */
+function UpdateCard() {
+  const [state, setState] = useState<{ busy: boolean; text: string }>({ busy: false, text: '' });
+  const [y, m, d] = __BUILD_DATE__.split('-');
+  return (
+    <Card className="space-y-2 text-center">
+      <p className="text-sm">
+        Mon Suivi — <strong>version {__APP_VERSION__}</strong> du {d}/{m}/{y}
+      </p>
+      <Button
+        block
+        variant="secondary"
+        disabled={state.busy}
+        onClick={async () => {
+          setState({ busy: true, text: '' });
+          const { checkForUpdate } = await import('../lib/pwa');
+          const r = await checkForUpdate();
+          setState({
+            busy: false,
+            text: {
+              'a-jour': 'Vous avez la dernière version.',
+              'mise-a-jour': 'Nouvelle version trouvée : installation, l’application va se recharger…',
+              'hors-ligne': 'Pas de connexion : réessayez avec Internet.',
+              indisponible: 'Vérification impossible dans ce navigateur.',
+            }[r],
+          });
+        }}
+      >
+        <RotateCcw className="size-4" /> {state.busy ? 'Recherche…' : 'Rechercher une mise à jour'}
+      </Button>
+      {state.text && <p role="status" className="text-sm">{state.text}</p>}
+    </Card>
+  );
+}
+
 export default function Settings() {
   const settings = useSettings();
   const [theme, setTheme] = useState<ThemePref>(getThemePref());
@@ -386,7 +421,7 @@ export default function Settings() {
 
       {wiping && <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-50 text-lg font-semibold dark:bg-slate-950">Effacement…</div>}
 
-      <p className="pb-4 text-center text-xs text-slate-400">Mon Suivi — version {__APP_VERSION__}</p>
+      <UpdateCard />
 
       <Sheet open={!!pending} onClose={() => setPending(null)} title="Importer la sauvegarde ?">
         {pending && (

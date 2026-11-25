@@ -4,10 +4,12 @@ import './index.css';
 import App from './App';
 import { applyTheme, watchSystemTheme } from './lib/theme';
 import { initInstallPrompt } from './lib/install';
+import { initPwa } from './lib/pwa';
 
 applyTheme();
 watchSystemTheme();
 initInstallPrompt();
+initPwa();
 
 // Demande au navigateur de ne jamais effacer les données (IndexedDB) pour libérer de l'espace.
 void navigator.storage?.persist?.();

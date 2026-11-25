@@ -8,13 +8,17 @@ import pkg from './package.json' with { type: 'json' };
 export default defineConfig({
   base: './',
   build: { chunkSizeWarningLimit: 800 },
-  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+    __BUILD_DATE__: JSON.stringify(new Date().toISOString().slice(0, 10)),
+  },
   plugins: [
     react(),
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
+      // Enregistrement fait dans src/lib/pwa.ts (vérification des mises à jour + rechargement).
+      injectRegister: false,
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         id: './',
@@ -40,6 +44,9 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,ico,json,woff2}'],
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,
+        // Une nouvelle version s'active tout de suite (sinon elle attend que l'app soit complètement fermée).
+        skipWaiting: true,
+        clientsClaim: true,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         importScripts: ['sw-notifications.js'],
       },

@@ -40,8 +40,14 @@ pour cadrer, la « Détection en direct » encadre les zones suspectes). Confirm
 Analyse IA facultative : Réglages → États des lieux → clé API Anthropic (payante, internet requis).
 
 ### Mises à jour
-Quand une nouvelle version est publiée, elle s'installe toute seule à l'ouverture suivante (avec
-connexion). Vos données ne sont pas touchées.
+Depuis la version 1.1.0, une nouvelle version s'installe toute seule quand vous revenez dans l'app (avec
+Internet) : l'écran se recharge et vos données sont conservées. Pour forcer : **Réglages → Rechercher une
+mise à jour**. Le numéro de version est affiché en bas des Réglages.
+
+Si votre app affiche une version plus ancienne que la 1.1.0 (ou aucun numéro) : fermez-la complètement
+(bouton des applications récentes d'Android, glissez Mon Suivi vers le haut), puis rouvrez-la avec
+Internet ; recommencez une fois si besoin. N'effacez pas les données du site dans Chrome : cela supprime
+vos données.
 
 ---
 
