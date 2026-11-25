@@ -1,7 +1,8 @@
 # Mon Suivi
 
-Application mobile (PWA) **100 % hors ligne**, en français : dépenses, voiture, crèche, calendrier de
-travail, missions (carte des 69 wilayas) et soldes de congé, récupération et RC.
+Application mobile (PWA) **100 % hors ligne**, en français : dépenses, voiture (avec **états des lieux photo
+départ / retour** qui repèrent les nouvelles rayures), crèche, calendrier de travail, missions (carte des
+69 wilayas) et soldes de congé, récupération et RC.
 Aucune donnée n'est envoyée sur Internet : tout reste sur le téléphone (IndexedDB).
 
 Cahier des charges et décisions : [CAHIER_DES_CHARGES.md](./CAHIER_DES_CHARGES.md)
@@ -30,6 +31,13 @@ vous-même…). ⚠️ « Effacer les données » du site dans Chrome ou désins
 ### Changer de téléphone
 Installez l'app sur le nouveau téléphone, puis dans l'assistant de démarrage : **« Restaurer une
 sauvegarde »** et choisissez le fichier JSON. (Ou plus tard : Réglages → Importer une sauvegarde.)
+
+### États des lieux de la voiture (location, prêt)
+Voiture → **États des lieux** → **Départ** : photographiez les 8 positions autour du schéma et marquez les
+rayures déjà présentes. Au **retour** : reprenez les mêmes photos (la photo de départ s'affiche en transparence
+pour cadrer, la « Détection en direct » encadre les zones suspectes). Confirmez les nouveaux dégâts, puis
+**Constat PDF**. Tenez le téléphone à l'horizontale, à la même distance, avec une lumière comparable.
+Analyse IA facultative : Réglages → États des lieux → clé API Anthropic (payante, internet requis).
 
 ### Mises à jour
 Quand une nouvelle version est publiée, elle s'installe toute seule à l'ouverture suivante (avec

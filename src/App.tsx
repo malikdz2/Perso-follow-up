@@ -1,5 +1,6 @@
-import { Suspense, lazy, useEffect, useState } from 'react';
-import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { Suspense, lazy, useEffect, useState, type ReactNode } from 'react';
+import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { useSettings } from './db/settings';
 import { BottomNav } from './components/BottomNav';
 import { QuickAddSheet } from './components/QuickAddSheet';
@@ -22,9 +23,19 @@ import KeywordsPage from './pages/settings/KeywordsPage';
 
 // Chargé à la demande (graphiques) pour garder le démarrage rapide.
 const Recap = lazy(() => import('./pages/Recap'));
+// États des lieux (caméra, analyse, SDK de l'IA) : chargés à l'ouverture.
+const InspectionsPage = lazy(() => import('./pages/car/inspections/InspectionsPage'));
+const InspectionPage = lazy(() => import('./pages/car/inspections/InspectionPage'));
+const loading = <p className="pt-10 text-center text-slate-500">Chargement…</p>;
 import { AccessoriesPage, ChecksPage, FuelPage, InsurancePage, MaintenancePage, MiscPage } from './pages/car/CarLists';
 import { runStartupTasks } from './lib/engine';
 import { notifyDueReminders } from './lib/notify';
+
+/** Une erreur d'écran est oubliée dès qu'on change de page. */
+function Guarded({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
+  return <ErrorBoundary key={pathname}>{children}</ErrorBoundary>;
+}
 
 export default function App() {
   const settings = useSettings();
@@ -52,6 +63,7 @@ export default function App() {
   return (
     <HashRouter>
       <main className="mx-auto max-w-md px-4 pt-[env(safe-area-inset-top)] pb-28">
+        <Guarded>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route
@@ -79,12 +91,15 @@ export default function App() {
           <Route path="/voiture/accessoires" element={<AccessoriesPage />} />
           <Route path="/voiture/divers" element={<MiscPage />} />
           <Route path="/voiture/documents" element={<DocumentsPage />} />
+          <Route path="/voiture/etats-des-lieux" element={<Suspense fallback={loading}><InspectionsPage /></Suspense>} />
+          <Route path="/voiture/etats-des-lieux/:id" element={<Suspense fallback={loading}><InspectionPage /></Suspense>} />
           <Route path="/depenses" element={<ExpensesPage />} />
           <Route path="/depenses/categories" element={<CategoriesPage />} />
           <Route path="/creche" element={<DaycarePage />} />
           <Route path="/reglages/mots-cles" element={<KeywordsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </Guarded>
       </main>
       <BottomNav onAdd={() => setAddOpen(true)} />
       <QuickAddSheet open={addOpen} onClose={() => setAddOpen(false)} />

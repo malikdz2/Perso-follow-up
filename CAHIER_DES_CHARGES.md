@@ -95,6 +95,20 @@ possible, avec un motif.
 - Au premier lancement, un assistant demande les soldes de départ, les infos de la voiture et du
   crédit, et celles de la crèche.
 
+### 7. États des lieux de la voiture (ajout du 25/11/2026)
+Demande : photographier / scanner l'extérieur de la voiture au départ (relever les anciennes rayures), puis au
+retour (photos ou caméra en direct) et signaler les nouvelles rayures et bosses, comme une application de
+location. Choix validés : comparaison locale par défaut (hors ligne) + bouton facultatif « Analyse IA » (Claude) ;
+constat PDF avec photos avant / après.
+- 8 vues guidées (avant, 4 trois-quarts, 2 profils, arrière) sur un schéma de la voiture vue de dessus.
+- Départ : photos + marquage à la main des dégâts existants (ou relevé par l'IA, à confirmer).
+- Retour : la photo de départ s'affiche en transparence pour cadrer ; « Détection en direct » encadre les zones
+  suspectes dans le flux de la caméra ; après la prise, la comparaison locale crée des zones « à vérifier »
+  (les dégâts déjà relevés au départ sont écartés). L'utilisateur confirme ou écarte chaque zone.
+- Analyse IA (facultative, clé API Anthropic de l'utilisateur, internet requis) : avis sur chaque zone et
+  dégâts manqués, avec type, gravité et description ; toujours à confirmer.
+- Constat PDF : synthèse + chaque nouveau dégât avec extraits avant / après + vues concernées.
+
 ## RÉCAPITULATIF DE FIN DE MOIS
 Généré automatiquement le dernier jour du mois (ou à la première ouverture qui suit), et figé dans
 l'historique. Il contient : les dépenses totales et par catégorie (graphique), la voiture
@@ -203,6 +217,18 @@ erreur, résumer ce qui est fait, puis ATTENDRE la validation avant de continuer
     écrits ; les couleurs de catégorie restent des pastilles à côté du nom.
   - CSV : séparateur « ; », virgule décimale, UTF-8 avec BOM (Excel en français).
   - Déploiement : `netlify.toml` et `.github/workflows/deploy.yml` (GitHub Pages) prêts.
+
+- États des lieux (ajout) :
+  - Comparaison locale `src/lib/damage/detect.ts` (testée) : images 320 × 240, réduction progressive (sinon les
+    traits fins clignotent), alignement au ¼ de pixel, éclairage normalisé, écart au plus proche voisin minoré
+    sur les contours déjà présents, nouveaux contours ; seuil adaptatif ; analyse limitée à la silhouette du
+    guide (réglable). Zone couvrant > 25 % de la carrosserie ou > 18 % de pixels changés → « photo mal cadrée ».
+  - Photos 4:3 (1 600 px) en Blob dans les tables `inspections`, `inspectionShots`, `damages` (base v2).
+  - IA : SDK officiel `@anthropic-ai/sdk` appelé depuis le navigateur avec la clé de l'utilisateur
+    (`dangerouslyAllowBrowser`), modèle `claude-opus-5-5`, effort `high`, sortie JSON validée (zod),
+    repli automatique en cas de refus (`fallbacks: "default"`). La clé n'est jamais incluse dans les sauvegardes.
+  - Limites connues : reflets, ombres, saleté ou eau peuvent créer des zones ; un angle très différent rend la
+    comparaison inutilisable (signalé). Aucune détection n'est infaillible : la décision reste à l'utilisateur.
 
 ## SUIVI
 - [x] Étape 1 — Socle

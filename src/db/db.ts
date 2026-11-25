@@ -210,6 +210,56 @@ export interface ReminderState {
   snoozedUntil?: ISODate;
 }
 
+// États des lieux de la voiture (départ / retour d'une location ou d'un prêt)
+export type InspectionKind = 'depart' | 'retour';
+export interface Inspection {
+  id?: number;
+  kind: InspectionKind;
+  date: ISODate;
+  createdAt: number;
+  /** Ex. : « Location Karim » */
+  label: string;
+  note?: string;
+  /** Pour un retour : l'état des lieux de départ comparé. */
+  departureId?: number;
+  closed: boolean;
+}
+export type ViewKeyDb = 'avant' | 'avant_droit' | 'droite' | 'arriere_droit' | 'arriere' | 'arriere_gauche' | 'gauche' | 'avant_gauche';
+export interface InspectionShot {
+  id?: number;
+  inspectionId: number;
+  view: ViewKeyDb;
+  blob: Blob; // JPEG 4:3
+  width: number;
+  height: number;
+  takenAt: number;
+  /** Résultat de la comparaison locale (retour uniquement). */
+  analysis?: { changedRatio: number; alignment: number; misaligned: boolean; shift: { dx: number; dy: number }; candidates: number; known: number; at: number };
+  /** Dernière analyse IA de cette vue. */
+  ai?: { at: number; quality: string; remarks: string; model: string };
+}
+export type DamageSource = 'manuel' | 'auto' | 'ia';
+export type DamageStatus = 'a_verifier' | 'confirme' | 'ignore';
+export interface Damage {
+  id?: number;
+  inspectionId: number;
+  view: ViewKeyDb;
+  /** Zone normalisée 0..1 sur la photo. */
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  source: DamageSource;
+  status: DamageStatus;
+  kind?: string; // rayure, bosse, éclat…
+  severity?: string; // léger, moyen, important
+  description?: string;
+  score?: number;
+  /** Avis de l'IA sur une zone détectée localement. */
+  aiVerdict?: string;
+  createdAt: number;
+}
+
 // ───────────────────────── Base ─────────────────────────
 
 export class AppDB extends Dexie {
@@ -236,6 +286,9 @@ export class AppDB extends Dexie {
   keywords!: EntityTable<KeywordRule, 'id'>;
   recaps!: EntityTable<Recap, 'month'>;
   reminders!: EntityTable<ReminderState, 'key'>;
+  inspections!: EntityTable<Inspection, 'id'>;
+  inspectionShots!: EntityTable<InspectionShot, 'id'>;
+  damages!: EntityTable<Damage, 'id'>;
 
   constructor(name = 'mon-suivi') {
     super(name);
@@ -263,6 +316,13 @@ export class AppDB extends Dexie {
       keywords: '++id, word',
       recaps: 'month',
       reminders: 'key',
+    });
+
+    // v2 : états des lieux de la voiture (photos, dégâts).
+    this.version(2).stores({
+      inspections: '++id, kind, date, departureId',
+      inspectionShots: '++id, inspectionId, [inspectionId+view]',
+      damages: '++id, inspectionId, [inspectionId+view], status',
     });
 
     this.on('populate', (tx) => seed(tx.table('categories'), tx.table('keywords')));

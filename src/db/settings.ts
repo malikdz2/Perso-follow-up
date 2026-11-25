@@ -18,6 +18,12 @@ export interface AppSettings {
   fullName?: string;
   jobTitle?: string;
   employer?: string;
+  /** Clé API Anthropic pour l'analyse IA facultative (jamais incluse dans les sauvegardes). */
+  aiApiKey?: string;
+  /** Sensibilité de la comparaison locale des photos (1 = normal). */
+  damageSensitivity: number;
+  /** Limiter la comparaison à la silhouette de la voiture (ignore le décor). */
+  damageUseMask: boolean;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -27,6 +33,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   oilInterval: 10_000,
   notificationsEnabled: false,
   holidayYears: [],
+  damageSensitivity: 1,
+  damageUseMask: true,
 };
 
 export async function getSettings(): Promise<AppSettings> {

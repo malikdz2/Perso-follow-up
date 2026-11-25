@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { AlertTriangle, CalendarClock, Car, CreditCard, FileImage, Fuel, Package, Pencil, ShieldCheck, Sparkles, Wrench, type LucideIcon } from 'lucide-react';
+import { AlertTriangle, CalendarClock, Car, CreditCard, FileImage, Fuel, Package, Pencil, ScanSearch, ShieldCheck, Sparkles, Wrench, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { db } from '../../db/db';
 import { useSettings } from '../../db/settings';
@@ -175,6 +175,10 @@ export default function CarHome() {
         <Tile to="/voiture/divers" icon={Sparkles} title="Divers">
           Lavage, parking, amende, péage
           <p className="text-xs">ce mois : {fmtDA(inMonth(d.misc).reduce((s, r) => s + r.amount, 0))}</p>
+        </Tile>
+        <Tile to="/voiture/etats-des-lieux" icon={ScanSearch} title="États des lieux">
+          Photos départ / retour
+          <p className="text-xs">nouvelles rayures détectées</p>
         </Tile>
         <Tile to="/voiture/documents" icon={FileImage} title="Documents">
           {d.docs} photo{d.docs > 1 ? 's' : ''}

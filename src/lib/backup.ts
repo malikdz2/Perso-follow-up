@@ -67,7 +67,10 @@ function decode(value: unknown): unknown {
 export async function buildBackup(): Promise<BackupFile> {
   const tables: Record<string, unknown[]> = {};
   for (const table of db.tables) {
-    tables[table.name] = (await encode(await table.toArray())) as unknown[];
+    let rows = await table.toArray();
+    // La clé API reste sur ce téléphone : elle n'est jamais copiée dans un fichier de sauvegarde.
+    if (table.name === 'settings') rows = rows.filter((r) => (r as { key: string }).key !== 'aiApiKey');
+    tables[table.name] = (await encode(rows)) as unknown[];
   }
   return {
     app: BACKUP_APP_ID,
@@ -120,8 +123,10 @@ export function parseBackup(text: string): BackupFile {
 /** Remplace TOUTES les données par celles de la sauvegarde (transaction unique : tout ou rien). */
 export async function restoreBackup(backup: BackupFile): Promise<void> {
   const known = new Set(db.tables.map((t) => t.name));
+  const keepKey = await db.settings.get('aiApiKey');
   await db.transaction('rw', db.tables, async () => {
     for (const table of db.tables) await table.clear();
+    if (keepKey) await db.settings.put(keepKey);
     for (const [name, rows] of Object.entries(backup.tables)) {
       if (!known.has(name) || !Array.isArray(rows) || rows.length === 0) continue;
       await db.table(name).bulkPut(decode(rows) as unknown[]);

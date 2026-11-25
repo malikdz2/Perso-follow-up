@@ -50,6 +50,63 @@ function StorageInfo() {
   );
 }
 
+/** Clé API Anthropic (analyse IA facultative des photos d'état des lieux). */
+function AiKeyField({ current }: { current?: string }) {
+  const [value, setValue] = useState(current ?? '');
+  const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  return (
+    <div className="space-y-2 border-t border-slate-100 pt-3 dark:border-slate-800">
+      <p className="font-medium">Analyse IA (facultative)</p>
+      <p className="text-xs text-slate-500 dark:text-slate-400">
+        Avec une clé API Anthropic (console.anthropic.com, payante à l'usage : quelques centimes de dollar par vue), le bouton « Analyse IA » envoie les photos à Claude
+        pour décrire les dégâts. Les photos ne quittent le téléphone qu'à ce moment-là. La clé reste sur ce téléphone et n'est jamais incluse dans les sauvegardes.
+      </p>
+      <Input type="password" autoComplete="off" placeholder="sk-ant-…" value={value} onChange={(e) => setValue(e.target.value)} aria-label="Clé API Anthropic" />
+      <div className="flex gap-2">
+        <Button
+          className="flex-1"
+          disabled={busy || !value.trim()}
+          onClick={async () => {
+            setBusy(true);
+            setStatus(null);
+            try {
+              const { testApiKey } = await import('../lib/damage/ai');
+              const name = await testApiKey(value.trim());
+              await setSetting('aiApiKey', value.trim());
+              setStatus({ ok: true, text: `Clé valide (${name}). Analyse IA activée.` });
+            } catch (e) {
+              const { aiErrorMessage } = await import('../lib/damage/ai');
+              setStatus({ ok: false, text: aiErrorMessage(e) });
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          {busy ? 'Vérification…' : 'Vérifier et enregistrer'}
+        </Button>
+        {current && (
+          <Button
+            variant="secondary"
+            onClick={async () => {
+              await setSetting('aiApiKey', undefined);
+              setValue('');
+              setStatus({ ok: true, text: 'Clé supprimée de ce téléphone.' });
+            }}
+          >
+            Retirer
+          </Button>
+        )}
+      </div>
+      {status && (
+        <p role="status" className={status.ok ? 'text-sm text-emerald-700 dark:text-emerald-400' : 'text-sm text-red-600 dark:text-red-400'}>
+          {status.text}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function Settings() {
   const settings = useSettings();
   const [theme, setTheme] = useState<ThemePref>(getThemePref());
@@ -162,6 +219,33 @@ export default function Settings() {
           </span>
           <ChevronRight className="size-5 text-slate-400" />
         </Link>
+      </Section>
+
+      <Section title="États des lieux — analyse des photos">
+        <Card className="space-y-4">
+          <Field label="Sensibilité de la comparaison" group hint="Plus sensible = repère des rayures plus fines, mais davantage de fausses alertes (reflets, poussière).">
+            <Segmented
+              value={String(settings.damageSensitivity)}
+              onChange={(v) => void setSetting('damageSensitivity', Number(v))}
+              options={[
+                { value: '0.7', label: 'Faible' },
+                { value: '1', label: 'Normale' },
+                { value: '1.4', label: 'Élevée' },
+              ]}
+            />
+          </Field>
+          <Field label="Zone analysée" group hint="« Carrosserie » ignore le décor (sol, autres voitures, passants) en se limitant à la silhouette du guide.">
+            <Segmented
+              value={settings.damageUseMask ? 'mask' : 'all'}
+              onChange={(v) => void setSetting('damageUseMask', v === 'mask')}
+              options={[
+                { value: 'mask', label: 'Carrosserie' },
+                { value: 'all', label: 'Toute la photo' },
+              ]}
+            />
+          </Field>
+          <AiKeyField current={settings.aiApiKey} />
+        </Card>
       </Section>
 
       <Section title="Voiture">
